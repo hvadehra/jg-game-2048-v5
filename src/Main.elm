@@ -51,8 +51,25 @@ viewBackgroundGridItems =
     List.map viewBackgroundGridItem gps
 
 
+type alias GP =
+    ( Int, Int )
+
+
+type alias Tile =
+    { gp : GP
+    , val : Int
+    }
+
+
+tiles : List Tile
+tiles =
+    [ { gp = ( 0, 0 ), val = 2 }
+    , { gp = ( 2, 3 ), val = 4 }
+    ]
+
+
 viewGridItems =
-    [ viewGridItem ( 0, 0 ) ]
+    List.map viewGridItem tiles
 
 
 gps =
@@ -60,13 +77,16 @@ gps =
         |> List.concatMap (\x -> List.range 0 3 |> List.map (\y -> ( x, y )))
 
 
-viewGridItem xy =
+viewGridItem tile =
+    let
+        gp =
+            tile.gp
+    in
     div
-        [ gridAreaFromXY xy
-
-        --, style "background" "#444"
+        [ gridAreaFromXY gp
         , style "padding" "5px"
-        , style "translate" "300%"
+
+        --, style "translate" "300%"
         , style "transition" "translate 200ms ease-in"
         ]
         [ div
@@ -79,7 +99,7 @@ viewGridItem xy =
             , style "background" "#222"
             , style "color" "#eee"
             ]
-            [ text (Debug.toString xy) ]
+            [ text (Debug.toString gp) ]
 
         --[]
         ]
