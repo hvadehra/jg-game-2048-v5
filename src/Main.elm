@@ -81,6 +81,9 @@ viewGridItem tile =
     let
         gp =
             tile.gp
+
+        val =
+            tile.val
     in
     div
         [ gridAreaFromXY gp
@@ -98,8 +101,10 @@ viewGridItem tile =
             , style "place-items" "center"
             , style "background" "#222"
             , style "color" "#eee"
+            , style "font-size" "48px"
             ]
-            [ text (Debug.toString gp) ]
+            --[ text (Debug.toString gp) ]
+            [ text (String.fromInt val) ]
 
         --[]
         ]
