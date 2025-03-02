@@ -5,27 +5,14 @@ import Html.Attributes as HA exposing (style)
 
 
 main =
-    div
-        --[ style "min-width" "100%"
-        --, style "min-height" "100%"
-        --, style "display" "flex"
-        --, style "flex-direction" "column"
-        --, style "justify-content" "center"
-        --, style "align-items" "center"
-        --]
-        []
+    div []
         [ viewGlobalStyles
         , div [ style "padding" "10px" ] [ viewGrid ]
-
-        --, div [ style "padding" "10px" ] [ viewGrid ]
         ]
 
 
 viewGlobalStyles =
-    Html.node "style"
-        []
-        [ text globalStyleText
-        ]
+    Html.node "style" [] [ text globalStyleText ]
 
 
 globalStyleText =
@@ -51,15 +38,21 @@ viewGrid =
     div
         [ HA.style "display" "grid"
         , HA.style "grid" "repeat(4, 100px) / repeat(4, 100px)"
-
-        --, style "background" "dodgerblue"
         , style "background" "#444"
         , style "padding" "5px"
         , style "border-radius" "10px"
         ]
-        (List.map viewBackgroundGridItem gps
-            ++ [ viewGridItem ( 0, 0 ) ]
+        (viewBackgroundGridItems
+            ++ viewGridItems
         )
+
+
+viewBackgroundGridItems =
+    List.map viewBackgroundGridItem gps
+
+
+viewGridItems =
+    [ viewGridItem ( 0, 0 ) ]
 
 
 gps =
