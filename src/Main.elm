@@ -5,6 +5,20 @@ import Html.Attributes as HA exposing (style)
 import Random exposing (Generator)
 
 
+main =
+    let
+        initialTiles : List Tile
+        initialTiles =
+            Random.step (randomTiles allGPs) (Random.initialSeed 5)
+                |> Tuple.first
+                |> Debug.log ""
+
+        _ =
+            List.length initialTiles |> Debug.log "len"
+    in
+    view { tiles = initialTiles }
+
+
 type alias GP =
     ( Int, Int )
 
@@ -21,7 +35,29 @@ type alias Val =
 
 randomTiles : List GP -> Generator (List Tile)
 randomTiles emptyGPs =
-    Random.andThen randomTilesFromGPs (randomAvailableGPs 2 emptyGPs [])
+    let
+        randomAvailableGPs =
+            randomAvailableGPsHelp 2 emptyGPs []
+    in
+    Random.andThen randomTilesFromGPs randomAvailableGPs
+
+
+randomAvailableGPsHelp : Int -> List GP -> List GP -> Generator (List GP)
+randomAvailableGPsHelp maxGP fromGPs acc =
+    if maxGP <= 0 then
+        Random.constant acc
+
+    else
+        case fromGPs of
+            [] ->
+                Random.constant acc
+
+            x :: xs ->
+                Random.uniform x xs
+                    |> Random.andThen
+                        (\gp ->
+                            randomAvailableGPsHelp (maxGP - 1) (List.filter (\y -> y /= gp) (x :: xs)) (gp :: acc)
+                        )
 
 
 randomTilesFromGPs : List GP -> Generator (List Tile)
@@ -38,24 +74,6 @@ randomTilesFromGPs gps =
             )
 
 
-randomAvailableGPs : Int -> List GP -> List GP -> Generator (List GP)
-randomAvailableGPs maxGP fromGPs acc =
-    if maxGP <= 0 then
-        Random.constant acc
-
-    else
-        case fromGPs of
-            [] ->
-                Random.constant acc
-
-            x :: xs ->
-                Random.uniform x xs
-                    |> Random.andThen
-                        (\gp ->
-                            randomAvailableGPs (maxGP - 1) (List.filter (\y -> y /= gp) (x :: xs)) (gp :: acc)
-                        )
-
-
 randomInitialVal : Generator Val
 randomInitialVal =
     Random.uniform 2 [ 4 ]
@@ -69,20 +87,6 @@ initTile gp val =
 allGPs =
     List.range 0 3
         |> List.concatMap (\x -> List.range 0 3 |> List.map (\y -> ( x, y )))
-
-
-main =
-    let
-        initialTiles : List Tile
-        initialTiles =
-            Random.step (randomTiles allGPs) (Random.initialSeed 5)
-                |> Tuple.first
-                |> Debug.log ""
-
-        _ =
-            List.length initialTiles |> Debug.log "len"
-    in
-    view { tiles = initialTiles }
 
 
 view model =
