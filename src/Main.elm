@@ -5,63 +5,6 @@ import Html.Attributes as HA exposing (style)
 import Random exposing (Generator)
 
 
-main =
-    let
-        initialTiles : List Tile
-        initialTiles =
-            Random.step (randomTiles allGPs) (Random.initialSeed 5)
-                |> Tuple.first
-                |> Debug.log ""
-
-        _ =
-            List.length initialTiles |> Debug.log "len"
-    in
-    view { tiles = initialTiles }
-
-
-view model =
-    div []
-        [ viewGlobalStyles
-        , div [ style "padding" "10px" ] [ viewGrid model.tiles ]
-        ]
-
-
-viewGlobalStyles =
-    Html.node "style" [] [ text globalStyleText ]
-
-
-globalStyleText =
-    """
-       * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        body, html {
-            --height: 100%;
-            min-height: 100%;
-            min-width: 100%;
-            --margin: 0;
-            display: flex;
-            justify-content: safe center;
-            align-items: safe center;
-        }
-    """
-
-
-viewGrid tiles =
-    div
-        [ HA.style "display" "grid"
-        , HA.style "grid" "repeat(4, 100px) / repeat(4, 100px)"
-        , style "background" "#444"
-        , style "padding" "5px"
-        , style "border-radius" "10px"
-        ]
-        (List.map viewBackgroundGridItem allGPs
-            ++ List.map viewGridItem tiles
-        )
-
-
 type alias GP =
     ( Int, Int )
 
@@ -126,6 +69,63 @@ initTile gp val =
 allGPs =
     List.range 0 3
         |> List.concatMap (\x -> List.range 0 3 |> List.map (\y -> ( x, y )))
+
+
+main =
+    let
+        initialTiles : List Tile
+        initialTiles =
+            Random.step (randomTiles allGPs) (Random.initialSeed 5)
+                |> Tuple.first
+                |> Debug.log ""
+
+        _ =
+            List.length initialTiles |> Debug.log "len"
+    in
+    view { tiles = initialTiles }
+
+
+view model =
+    div []
+        [ viewGlobalStyles
+        , div [ style "padding" "10px" ] [ viewGrid model.tiles ]
+        ]
+
+
+viewGlobalStyles =
+    Html.node "style" [] [ text globalStyleText ]
+
+
+globalStyleText =
+    """
+       * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body, html {
+            --height: 100%;
+            min-height: 100%;
+            min-width: 100%;
+            --margin: 0;
+            display: flex;
+            justify-content: safe center;
+            align-items: safe center;
+        }
+    """
+
+
+viewGrid tiles =
+    div
+        [ HA.style "display" "grid"
+        , HA.style "grid" "repeat(4, 100px) / repeat(4, 100px)"
+        , style "background" "#444"
+        , style "padding" "5px"
+        , style "border-radius" "10px"
+        ]
+        (List.map viewBackgroundGridItem allGPs
+            ++ List.map viewGridItem tiles
+        )
 
 
 viewGridItem tile =
