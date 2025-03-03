@@ -9,8 +9,9 @@ main =
     let
         initialTiles : List Tile
         initialTiles =
-            Random.step randomInitialTiles (Random.initialSeed 1)
+            Random.step randomInitialTiles (Random.initialSeed 2)
                 |> Tuple.first
+                |> Debug.log ""
     in
     view { tiles = initialTiles }
 
@@ -53,13 +54,9 @@ viewGrid tiles =
         , style "padding" "5px"
         , style "border-radius" "10px"
         ]
-        (viewBackgroundGridItems
+        (List.map viewBackgroundGridItem gps
             ++ List.map viewGridItem tiles
         )
-
-
-viewBackgroundGridItems =
-    List.map viewBackgroundGridItem gps
 
 
 type alias GP =
@@ -68,26 +65,54 @@ type alias GP =
 
 type alias Tile =
     { gp : GP
-    , val : Int
+    , val : Val
     }
 
 
-
---tiles : List Tile
---tiles =
---    [ { gp = ( 0, 0 ), val = 2 }
---    , { gp = ( 2, 3 ), val = 4 }
---    ]
---
---
+type alias Val =
+    Int
 
 
 randomInitialTiles : Generator (List Tile)
 randomInitialTiles =
-    Random.constant
-        [ { gp = ( 0, 0 ), val = 2 }
-        , { gp = ( 2, 3 ), val = 4 }
-        ]
+    let
+        randomGPs =
+            randomAvailableGPs 2 gps []
+    in
+    Debug.todo ""
+
+
+randomAvailableGPs : Int -> List GP -> List GP -> Generator (List GP)
+randomAvailableGPs maxGP fromGPs acc =
+    if maxGP <= 0 then
+        Random.constant acc
+
+    else
+        case fromGPs of
+            [] ->
+                Random.constant acc
+
+            x :: xs ->
+                Random.uniform x xs
+                    |> Random.andThen
+                        (\gp ->
+                            randomAvailableGPs (maxGP - 1) (List.filter (\y -> y == gp) (x :: xs)) (gp :: acc)
+                        )
+
+
+randomGP : Generator GP
+randomGP =
+    Random.uniform ( 0, 0 ) (List.drop 1 gps)
+
+
+randomInitialVal : Generator Val
+randomInitialVal =
+    Random.uniform 2 [ 4 ]
+
+
+initTile : GP -> Val -> Tile
+initTile gp val =
+    Tile gp val
 
 
 gps =
