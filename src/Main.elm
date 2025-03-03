@@ -2,12 +2,23 @@ module Main exposing (main)
 
 import Html exposing (..)
 import Html.Attributes as HA exposing (style)
+import Random exposing (Generator)
 
 
 main =
+    let
+        initialTiles : List Tile
+        initialTiles =
+            Random.step randomInitialTiles (Random.initialSeed 1)
+                |> Tuple.first
+    in
+    view { tiles = initialTiles }
+
+
+view model =
     div []
         [ viewGlobalStyles
-        , div [ style "padding" "10px" ] [ viewGrid ]
+        , div [ style "padding" "10px" ] [ viewGrid model.tiles ]
         ]
 
 
@@ -34,7 +45,7 @@ globalStyleText =
     """
 
 
-viewGrid =
+viewGrid tiles =
     div
         [ HA.style "display" "grid"
         , HA.style "grid" "repeat(4, 100px) / repeat(4, 100px)"
@@ -43,7 +54,7 @@ viewGrid =
         , style "border-radius" "10px"
         ]
         (viewBackgroundGridItems
-            ++ viewGridItems
+            ++ List.map viewGridItem tiles
         )
 
 
@@ -61,15 +72,22 @@ type alias Tile =
     }
 
 
-tiles : List Tile
-tiles =
-    [ { gp = ( 0, 0 ), val = 2 }
-    , { gp = ( 2, 3 ), val = 4 }
-    ]
+
+--tiles : List Tile
+--tiles =
+--    [ { gp = ( 0, 0 ), val = 2 }
+--    , { gp = ( 2, 3 ), val = 4 }
+--    ]
+--
+--
 
 
-viewGridItems =
-    List.map viewGridItem tiles
+randomInitialTiles : Generator (List Tile)
+randomInitialTiles =
+    Random.constant
+        [ { gp = ( 0, 0 ), val = 2 }
+        , { gp = ( 2, 3 ), val = 4 }
+        ]
 
 
 gps =
