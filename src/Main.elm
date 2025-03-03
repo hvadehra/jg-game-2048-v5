@@ -9,9 +9,12 @@ main =
     let
         initialTiles : List Tile
         initialTiles =
-            Random.step (randomTiles allGPs) (Random.initialSeed 2)
+            Random.step (randomTiles allGPs) (Random.initialSeed 5)
                 |> Tuple.first
                 |> Debug.log ""
+
+        _ =
+            List.length initialTiles |> Debug.log "len"
     in
     view { tiles = initialTiles }
 
