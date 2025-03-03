@@ -9,7 +9,7 @@ main =
     let
         initialTiles : List Tile
         initialTiles =
-            Random.step randomInitialTiles (Random.initialSeed 2)
+            Random.step (randomTiles allGPs) (Random.initialSeed 2)
                 |> Tuple.first
                 |> Debug.log ""
     in
@@ -54,7 +54,7 @@ viewGrid tiles =
         , style "padding" "5px"
         , style "border-radius" "10px"
         ]
-        (List.map viewBackgroundGridItem gps
+        (List.map viewBackgroundGridItem allGPs
             ++ List.map viewGridItem tiles
         )
 
@@ -73,13 +73,23 @@ type alias Val =
     Int
 
 
-randomInitialTiles : Generator (List Tile)
-randomInitialTiles =
+randomTiles : List GP -> Generator (List Tile)
+randomTiles emptyGPs =
+    Random.andThen randomTilesFromGPs (randomAvailableGPs 2 emptyGPs [])
+
+
+randomTilesFromGPs : List GP -> Generator (List Tile)
+randomTilesFromGPs gps =
     let
-        randomGPs =
-            randomAvailableGPs 2 gps []
+        len =
+            List.length gps
     in
-    Debug.todo ""
+    Random.list len randomInitialVal
+        |> Random.map
+            (\vals ->
+                List.map2 Tuple.pair gps vals
+                    |> List.map (\( gp, val ) -> initTile gp val)
+            )
 
 
 randomAvailableGPs : Int -> List GP -> List GP -> Generator (List GP)
@@ -96,13 +106,8 @@ randomAvailableGPs maxGP fromGPs acc =
                 Random.uniform x xs
                     |> Random.andThen
                         (\gp ->
-                            randomAvailableGPs (maxGP - 1) (List.filter (\y -> y == gp) (x :: xs)) (gp :: acc)
+                            randomAvailableGPs (maxGP - 1) (List.filter (\y -> y /= gp) (x :: xs)) (gp :: acc)
                         )
-
-
-randomGP : Generator GP
-randomGP =
-    Random.uniform ( 0, 0 ) (List.drop 1 gps)
 
 
 randomInitialVal : Generator Val
@@ -115,7 +120,7 @@ initTile gp val =
     Tile gp val
 
 
-gps =
+allGPs =
     List.range 0 3
         |> List.concatMap (\x -> List.range 0 3 |> List.map (\y -> ( x, y )))
 
