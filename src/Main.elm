@@ -10,14 +10,15 @@ main =
     let
         initialTiles : List Tile
         initialTiles =
-            Random.step (randomTiles allGPs) (Random.initialSeed 5)
+            Random.step (randomTiles allGPs) (Random.initialSeed 0)
                 |> Tuple.first
                 |> Debug.log ""
 
         _ =
             List.length initialTiles |> Debug.log "len"
     in
-    view { tiles = initialTiles }
+    view
+        { tiles = initialTiles |> slideLeft }
 
 
 type alias GP =
@@ -73,6 +74,18 @@ initTile gp val =
 allGPs =
     List.range 0 3
         |> List.concatMap (\x -> List.range 0 3 |> List.map (\y -> ( x, y )))
+
+
+slideLeft tiles =
+    tiles
+        |> List.map
+            (\t ->
+                let
+                    ( x, y ) =
+                        t.gp
+                in
+                { t | gp = ( 0, y ) }
+            )
 
 
 view model =
