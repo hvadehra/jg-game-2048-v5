@@ -3,6 +3,7 @@ module Main exposing (main)
 import Html exposing (..)
 import Html.Attributes as HA exposing (style)
 import Random exposing (Generator)
+import Random.List
 
 
 main =
@@ -35,29 +36,14 @@ type alias Val =
 
 randomTiles : List GP -> Generator (List Tile)
 randomTiles emptyGPs =
-    let
-        randomAvailableGPs =
-            randomAvailableGPsHelp 2 emptyGPs []
-    in
-    Random.andThen randomTilesFromGPs randomAvailableGPs
+    randomAvailableGPsUpto 2 emptyGPs
+        |> Random.andThen randomTilesFromGPs
 
 
-randomAvailableGPsHelp : Int -> List GP -> List GP -> Generator (List GP)
-randomAvailableGPsHelp maxGP fromGPs acc =
-    if maxGP <= 0 then
-        Random.constant acc
-
-    else
-        case fromGPs of
-            [] ->
-                Random.constant acc
-
-            x :: xs ->
-                Random.uniform x xs
-                    |> Random.andThen
-                        (\gp ->
-                            randomAvailableGPsHelp (maxGP - 1) (List.filter (\y -> y /= gp) (x :: xs)) (gp :: acc)
-                        )
+randomAvailableGPsUpto : Int -> List GP -> Generator (List GP)
+randomAvailableGPsUpto maxGP availableGPs =
+    Random.List.shuffle availableGPs
+        |> Random.map (List.take maxGP)
 
 
 randomTilesFromGPs : List GP -> Generator (List Tile)
