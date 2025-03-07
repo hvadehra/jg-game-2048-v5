@@ -6,6 +6,10 @@ import Random exposing (Generator)
 import Random.List
 
 
+randomTilesCount =
+    7
+
+
 main =
     let
         initialTiles : List Tile
@@ -14,11 +18,22 @@ main =
                 |> Tuple.first
                 |> Debug.log ""
 
-        _ =
-            List.length initialTiles |> Debug.log "len"
+        --        |> always initialTiles2
+        --
+        --initialTiles2 =
+        --    [ Tile ( 3, 0 ) 4
+        --    , Tile ( 2, 0 ) 2
+        --    ]
+        --_ =
+        --    List.length initialTiles |> Debug.log "len"
     in
     view
-        { tiles = initialTiles |> slideLeft }
+        { tiles =
+            initialTiles
+                |> slideLeft
+
+        --|> Debug.log "foo"
+        }
 
 
 type alias GP =
@@ -37,7 +52,7 @@ type alias Val =
 
 randomTiles : List GP -> Generator (List Tile)
 randomTiles emptyGPs =
-    randomAvailableGPsUpto 2 emptyGPs
+    randomAvailableGPsUpto randomTilesCount emptyGPs
         |> Random.andThen randomTilesFromGPs
 
 
@@ -77,14 +92,59 @@ allGPs =
 
 
 slideLeft tiles =
+    -- split by y
+    -- sort by x
+    -- replace x by index
+    let
+        newTiles =
+            groupTilesByY tiles
+                |> List.map sortTilesByX
+                |> List.map updateTileXByIndex
+                |> List.concat
+    in
+    newTiles
+
+
+updateTileXByIndex : List Tile -> List Tile
+updateTileXByIndex tiles =
     tiles
-        |> List.map
-            (\t ->
+        |> List.indexedMap
+            (\i t ->
                 let
-                    ( x, y ) =
+                    ( _, y ) =
                         t.gp
                 in
-                { t | gp = ( 0, y ) }
+                { t | gp = ( i, y ) }
+            )
+
+
+sortTilesByX : List Tile -> List Tile
+sortTilesByX tiles =
+    List.sortBy
+        (\t ->
+            let
+                ( x, _ ) =
+                    t.gp
+            in
+            x
+        )
+        tiles
+
+
+groupTilesByY : List Tile -> List (List Tile)
+groupTilesByY tiles =
+    List.range 0 3
+        |> List.map
+            (\i ->
+                List.filter
+                    (\t ->
+                        let
+                            ( _, y ) =
+                                t.gp
+                        in
+                        i == y
+                    )
+                    tiles
             )
 
 
