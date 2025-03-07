@@ -7,17 +7,17 @@ import Random.List
 
 
 randomTilesCount =
-    7
+    4
 
 
 main =
     let
         initialTiles : List Tile
         initialTiles =
-            Random.step (randomTiles allGPs) (Random.initialSeed 0)
+            Random.step (randomTiles allGPs) (Random.initialSeed 2)
                 |> Tuple.first
-                |> Debug.log ""
 
+        --|> Debug.log ""
         --        |> always initialTiles2
         --
         --initialTiles2 =
