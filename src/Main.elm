@@ -30,9 +30,9 @@ main =
     view
         { tiles =
             initialTiles
-                --|> slideLeft
-                |> slideRight
 
+        --|> slideLeft
+        --|> slideRight
         --|> Debug.log "foo"
         }
 
