@@ -30,7 +30,8 @@ main =
     view
         { tiles =
             initialTiles
-                |> slideLeft
+                --|> slideLeft
+                |> slideRight
 
         --|> Debug.log "foo"
         }
@@ -91,6 +92,27 @@ allGPs =
         |> List.concatMap (\x -> List.range 0 3 |> List.map (\y -> ( x, y )))
 
 
+slideRight : List Tile -> List Tile
+slideRight tiles =
+    groupTilesByY tiles
+        |> List.map sortTilesByNegativeX
+        |> List.map updateTileXByIndexMinus3
+        |> List.concat
+
+
+updateTileXByIndexMinus3 : List Tile -> List Tile
+updateTileXByIndexMinus3 tiles =
+    tiles
+        |> List.indexedMap
+            (\i t ->
+                let
+                    ( _, y ) =
+                        t.gp
+                in
+                { t | gp = ( 3 - i, y ) }
+            )
+
+
 slideLeft tiles =
     -- split by y
     -- sort by x
@@ -116,6 +138,19 @@ updateTileXByIndex tiles =
                 in
                 { t | gp = ( i, y ) }
             )
+
+
+sortTilesByNegativeX : List Tile -> List Tile
+sortTilesByNegativeX tiles =
+    List.sortBy
+        (\t ->
+            let
+                ( x, _ ) =
+                    t.gp
+            in
+            -x
+        )
+        tiles
 
 
 sortTilesByX : List Tile -> List Tile
