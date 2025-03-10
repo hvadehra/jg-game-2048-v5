@@ -93,8 +93,8 @@ allGPs =
         |> List.concatMap (\x -> List.range 0 3 |> List.map (\y -> ( x, y )))
 
 
-slideLeft2 : List Tile -> List Tile
-slideLeft2 tiles =
+slideLeftBoard : List Tile -> List Tile
+slideLeftBoard tiles =
     let
         rotationCount =
             0
@@ -102,7 +102,7 @@ slideLeft2 tiles =
     tiles
         |> tilesToLOL
         |> rotate90NTimes rotationCount
-        |> slideLeft2Help
+        |> slideLeftRows
         |> rotate90NTimes -rotationCount
         |> lolToTiles
 
@@ -126,9 +126,21 @@ lolToTiles lol =
         |> List.concat
 
 
-slideLeft2Help : List (List (Maybe Tile)) -> List (List (Maybe Tile))
-slideLeft2Help lol =
-    Debug.todo "todo"
+slideLeftRows : List (List (Maybe Tile)) -> List (List (Maybe Tile))
+slideLeftRows lol =
+    List.map slideLeftRow lol
+
+
+slideLeftRow : List (Maybe Tile) -> List (Maybe Tile)
+slideLeftRow row =
+    let
+        front =
+            List.filterMap identity row
+
+        tails =
+            List.repeat (List.length row - List.length front) Nothing
+    in
+    List.map Just front ++ tails
 
 
 rotate90 : List (List a) -> List (List a)
