@@ -109,7 +109,21 @@ slideLeft2 tiles =
 
 lolToTiles : List (List (Maybe Tile)) -> List Tile
 lolToTiles lol =
-    Debug.todo "todo"
+    List.indexedMap
+        (\y row ->
+            List.indexedMap
+                (\x mt ->
+                    Maybe.map
+                        (\t ->
+                            { t | gp = ( x, y ) }
+                        )
+                        mt
+                )
+                row
+                |> List.filterMap identity
+        )
+        lol
+        |> List.concat
 
 
 slideLeft2Help : List (List (Maybe Tile)) -> List (List (Maybe Tile))
