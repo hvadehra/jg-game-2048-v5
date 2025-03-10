@@ -31,9 +31,10 @@ main =
     view
         { tiles =
             initialTiles
-                |> slideLeft
-                |> slideRight
+                |> slideBoardLeft
 
+        --|> slideLeft
+        --|> slideRight
         --|> Debug.log "foo"
         }
 
@@ -93,8 +94,8 @@ allGPs =
         |> List.concatMap (\x -> List.range 0 3 |> List.map (\y -> ( x, y )))
 
 
-slideLeftBoard : List Tile -> List Tile
-slideLeftBoard tiles =
+slideBoardLeft : List Tile -> List Tile
+slideBoardLeft tiles =
     let
         rotationCount =
             0
