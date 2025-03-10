@@ -2,6 +2,7 @@ module Main exposing (main)
 
 import Html exposing (..)
 import Html.Attributes as HA exposing (style)
+import List.Extra as LE
 import Random exposing (Generator)
 import Random.List
 
@@ -94,11 +95,15 @@ allGPs =
 
 slideLeft2 : List Tile -> List Tile
 slideLeft2 tiles =
+    let
+        rotationCount =
+            0
+    in
     tiles
         |> tilesToLOL
-        --|> rotate90 0
+        |> rotate90NTimes rotationCount
         |> slideLeft2Help
-        --|> rotate90 0
+        |> rotate90NTimes -rotationCount
         |> lolToTiles
 
 
@@ -112,13 +117,33 @@ slideLeft2Help lol =
     Debug.todo "todo"
 
 
-rotate90 n =
-    Debug.todo "todo"
+rotate90 : List (List a) -> List (List a)
+rotate90 lol =
+    LE.transpose lol
+        |> List.map List.reverse
+
+
+rotate90NTimes : Int -> List (List a) -> List (List a)
+rotate90NTimes n lol =
+    times n rotate90 lol
+
+
+times n fn a =
+    if n <= 0 then
+        a
+
+    else
+        times (n - 1) fn (fn a)
 
 
 tilesToLOL : List Tile -> List (List (Maybe Tile))
 tilesToLOL tiles =
-    Debug.todo "todo"
+    let
+        findTileAtGP gp =
+            LE.find (\t -> t.gp == gp) tiles
+    in
+    List.range 0 3
+        |> List.map (\y -> List.range 0 3 |> List.map (\x -> findTileAtGP ( x, y )))
 
 
 slideRight : List Tile -> List Tile
