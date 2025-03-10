@@ -92,6 +92,35 @@ allGPs =
         |> List.concatMap (\x -> List.range 0 3 |> List.map (\y -> ( x, y )))
 
 
+slideLeft2 : List Tile -> List Tile
+slideLeft2 tiles =
+    tiles
+        |> tilesToLOL
+        --|> rotate90 0
+        |> slideLeft2Help
+        --|> rotate90 0
+        |> lolToTiles
+
+
+lolToTiles : List (List (Maybe Tile)) -> List Tile
+lolToTiles lol =
+    Debug.todo "todo"
+
+
+slideLeft2Help : List (List (Maybe Tile)) -> List (List (Maybe Tile))
+slideLeft2Help lol =
+    Debug.todo "todo"
+
+
+rotate90 n =
+    Debug.todo "todo"
+
+
+tilesToLOL : List Tile -> List (List (Maybe Tile))
+tilesToLOL tiles =
+    Debug.todo "todo"
+
+
 slideRight : List Tile -> List Tile
 slideRight tiles =
     groupTilesByY tiles
