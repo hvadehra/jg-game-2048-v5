@@ -31,11 +31,15 @@ main =
     view
         { tiles =
             initialTiles
-                |> slideBoardLeft
+                --|> tilesToLOL
+                --|> rotate90NTimes 2
+                --|> rotate90NTimes -2
+                --|> lolToTiles
                 |> slideLeft
+                --|> slideBoardLeft
                 |> slideRight
-                |> slideBoardRight
 
+        --|> slideBoardRight
         --|> Debug.log "foo"
         }
 
@@ -95,31 +99,22 @@ allGPs =
         |> List.concatMap (\x -> List.range 0 3 |> List.map (\y -> ( x, y )))
 
 
-slideBoardLeft tiles =
-    let
-        rotationCount =
-            0
-    in
+slideBoardWithRotationCount rotationCount tiles =
     tiles
         |> tilesToLOL
         |> rotate90NTimes rotationCount
         |> slideRowsLeft
-        |> rotate90NTimes -rotationCount
+        |> rotate90NTimes (4 - rotationCount)
         |> lolToTiles
+
+
+slideBoardLeft tiles =
+    slideBoardWithRotationCount 0 tiles
 
 
 slideBoardRight : List Tile -> List Tile
 slideBoardRight tiles =
-    let
-        rotationCount =
-            3
-    in
-    tiles
-        |> tilesToLOL
-        |> rotate90NTimes rotationCount
-        |> slideRowsLeft
-        |> rotate90NTimes -rotationCount
-        |> lolToTiles
+    slideBoardWithRotationCount 2 tiles
 
 
 lolToTiles : List (List (Maybe Tile)) -> List Tile
