@@ -103,7 +103,7 @@ slideBoardLeft tiles =
     tiles
         |> tilesToLOL
         |> rotate90NTimes rotationCount
-        |> slideLeftRows
+        |> slideRowsLeft
         |> rotate90NTimes -rotationCount
         |> lolToTiles
 
@@ -117,7 +117,7 @@ slideBoardRight tiles =
     tiles
         |> tilesToLOL
         |> rotate90NTimes rotationCount
-        |> slideLeftRows
+        |> slideRowsLeft
         |> rotate90NTimes -rotationCount
         |> lolToTiles
 
@@ -141,8 +141,8 @@ lolToTiles lol =
         |> List.concat
 
 
-slideLeftRows : List (List (Maybe Tile)) -> List (List (Maybe Tile))
-slideLeftRows lol =
+slideRowsLeft : List (List (Maybe Tile)) -> List (List (Maybe Tile))
+slideRowsLeft lol =
     List.map slideLeftRow lol
 
 
