@@ -31,16 +31,13 @@ main =
     view
         { tiles =
             initialTiles
-                --|> tilesToLOL
-                --|> rotate90NTimes 2
-                --|> rotate90NTimes -2
-                --|> lolToTiles
-                |> slideLeft
-                --|> slideBoardLeft
-                |> slideRight
 
-        --|> slideBoardRight
-        --|> Debug.log "foo"
+        --|> slideTilesInDirection Left
+        --|> slideTilesInDirection Up
+        --|> slideTilesInDirection Right
+        --|> slideTilesInDirection Left
+        --|> slideTilesInDirection Down
+        --|> slideTilesInDirection Down
         }
 
 
@@ -99,22 +96,49 @@ allGPs =
         |> List.concatMap (\x -> List.range 0 3 |> List.map (\y -> ( x, y )))
 
 
-slideBoardWithRotationCount rotationCount tiles =
-    tiles
-        |> tilesToLOL
-        |> rotate90NTimes rotationCount
-        |> slideRowsLeft
-        |> rotate90NTimes (4 - rotationCount)
+type SlideDirection
+    = Left
+    | Right
+    | Up
+    | Down
+
+
+slideTilesInDirection : SlideDirection -> List Tile -> List Tile
+slideTilesInDirection direction tiles =
+    slideTilesInDirectionHelp direction (tilesToLOL tiles)
         |> lolToTiles
 
 
-slideBoardLeft tiles =
-    slideBoardWithRotationCount 0 tiles
+slideTilesInDirectionHelp : SlideDirection -> List (List (Maybe Tile)) -> List (List (Maybe Tile))
+slideTilesInDirectionHelp direction lol =
+    case direction of
+        Left ->
+            lol
+                |> slideRowsLeft
+
+        Right ->
+            lol
+                |> reverseRows
+                |> slideRowsLeft
+                |> reverseRows
+
+        Up ->
+            lol
+                |> LE.transpose
+                |> slideRowsLeft
+                |> LE.transpose
+
+        Down ->
+            lol
+                |> LE.transpose
+                |> reverseRows
+                |> slideRowsLeft
+                |> reverseRows
+                |> LE.transpose
 
 
-slideBoardRight : List Tile -> List Tile
-slideBoardRight tiles =
-    slideBoardWithRotationCount 2 tiles
+reverseRows lol =
+    List.map List.reverse lol
 
 
 lolToTiles : List (List (Maybe Tile)) -> List Tile
@@ -138,11 +162,11 @@ lolToTiles lol =
 
 slideRowsLeft : List (List (Maybe Tile)) -> List (List (Maybe Tile))
 slideRowsLeft lol =
-    List.map slideLeftRow lol
+    List.map slideRowLeft lol
 
 
-slideLeftRow : List (Maybe Tile) -> List (Maybe Tile)
-slideLeftRow row =
+slideRowLeft : List (Maybe Tile) -> List (Maybe Tile)
+slideRowLeft row =
     let
         front =
             List.filterMap identity row
@@ -153,25 +177,6 @@ slideLeftRow row =
     List.map Just front ++ tails
 
 
-rotate90 : List (List a) -> List (List a)
-rotate90 lol =
-    LE.transpose lol
-        |> List.map List.reverse
-
-
-rotate90NTimes : Int -> List (List a) -> List (List a)
-rotate90NTimes n lol =
-    times n rotate90 lol
-
-
-times n fn a =
-    if n <= 0 then
-        a
-
-    else
-        times (n - 1) fn (fn a)
-
-
 tilesToLOL : List Tile -> List (List (Maybe Tile))
 tilesToLOL tiles =
     let
@@ -180,97 +185,6 @@ tilesToLOL tiles =
     in
     List.range 0 3
         |> List.map (\y -> List.range 0 3 |> List.map (\x -> findTileAtGP ( x, y )))
-
-
-slideRight : List Tile -> List Tile
-slideRight tiles =
-    groupTilesByY tiles
-        |> List.map sortTilesByNegativeX
-        |> List.map updateTileXByIndexMinus3
-        |> List.concat
-
-
-updateTileXByIndexMinus3 : List Tile -> List Tile
-updateTileXByIndexMinus3 tiles =
-    tiles
-        |> List.indexedMap
-            (\i t ->
-                let
-                    ( _, y ) =
-                        t.gp
-                in
-                { t | gp = ( 3 - i, y ) }
-            )
-
-
-slideLeft tiles =
-    -- split by y
-    -- sort by x
-    -- replace x by index
-    let
-        newTiles =
-            groupTilesByY tiles
-                |> List.map sortTilesByX
-                |> List.map updateTileXByIndex
-                |> List.concat
-    in
-    newTiles
-
-
-updateTileXByIndex : List Tile -> List Tile
-updateTileXByIndex tiles =
-    tiles
-        |> List.indexedMap
-            (\i t ->
-                let
-                    ( _, y ) =
-                        t.gp
-                in
-                { t | gp = ( i, y ) }
-            )
-
-
-sortTilesByNegativeX : List Tile -> List Tile
-sortTilesByNegativeX tiles =
-    List.sortBy
-        (\t ->
-            let
-                ( x, _ ) =
-                    t.gp
-            in
-            -x
-        )
-        tiles
-
-
-sortTilesByX : List Tile -> List Tile
-sortTilesByX tiles =
-    List.sortBy
-        (\t ->
-            let
-                ( x, _ ) =
-                    t.gp
-            in
-            x
-        )
-        tiles
-
-
-groupTilesByY : List Tile -> List (List Tile)
-groupTilesByY tiles =
-    List.range 0 3
-        |> List.map
-            (\i ->
-                List.filter
-                    (\t ->
-                        let
-                            ( _, y ) =
-                                t.gp
-                        in
-                        i == y
-                    )
-                    tiles
-            )
 
 
 view model =
