@@ -17,14 +17,15 @@ main =
         initialTiles =
             Random.step (randomTiles allGPs) (Random.initialSeed 2)
                 |> Tuple.first
+                --|> Debug.log ""
+                |> always initialTiles2
 
-        --|> Debug.log ""
-        --        |> always initialTiles2
-        --
-        --initialTiles2 =
-        --    [ Tile ( 3, 0 ) 4
-        --    , Tile ( 2, 0 ) 2
-        --    ]
+        initialTiles2 =
+            [ Tile ( 3, 1 ) 2
+            , Tile ( 2, 1 ) 2
+            , Tile ( 2, 2 ) 2
+            ]
+
         --_ =
         --    List.length initialTiles |> Debug.log "len"
     in
@@ -33,9 +34,9 @@ main =
             initialTiles
 
         --|> slideTilesInDirection Left
-        --|> slideTilesInDirection Up
         --|> slideTilesInDirection Right
         --|> slideTilesInDirection Left
+        --|> slideTilesInDirection Up
         --|> slideTilesInDirection Down
         --|> slideTilesInDirection Down
         }
@@ -168,13 +169,34 @@ slideRowsLeft lol =
 slideRowLeft : List (Maybe Tile) -> List (Maybe Tile)
 slideRowLeft row =
     let
+        front : List Tile
         front =
             List.filterMap identity row
 
-        tails =
+        merged : List Tile
+        merged =
+            merge front
+                |> Debug.log "tiles"
+
+        padding =
             List.repeat (List.length row - List.length front) Nothing
+                |> Debug.log "padding"
     in
-    List.map Just front ++ tails
+    List.map Just merged ++ padding
+
+
+merge : List Tile -> List Tile
+merge tiles =
+    case tiles of
+        x :: y :: rest ->
+            if x.val == y.val then
+                { x | val = x.val * 2 } :: merge rest
+
+            else
+                x :: merge (y :: rest)
+
+        _ ->
+            tiles
 
 
 tilesToLOL : List Tile -> List (List (Maybe Tile))
