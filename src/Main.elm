@@ -49,11 +49,11 @@ type alias GridPos =
 
 type alias Tile =
     { pos : GridPos
-    , val : Val
+    , value : TileValue
     }
 
 
-type alias Val =
+type alias TileValue =
     Int
 
 
@@ -75,22 +75,22 @@ randomTilesFromGridPos gridPositions =
         len =
             List.length gridPositions
     in
-    Random.list len randomInitialVal
+    Random.list len randomInitialValue
         |> Random.map
             (\vals ->
                 List.map2 Tuple.pair gridPositions vals
-                    |> List.map (\( pos, val ) -> initTile pos val)
+                    |> List.map (\( pos, value ) -> initTile pos value)
             )
 
 
-randomInitialVal : Generator Val
-randomInitialVal =
+randomInitialValue : Generator TileValue
+randomInitialValue =
     Random.uniform 2 [ 4 ]
 
 
-initTile : GridPos -> Val -> Tile
-initTile pos val =
-    Tile pos val
+initTile : GridPos -> TileValue -> Tile
+initTile pos value =
+    Tile pos value
 
 
 allPositions =
@@ -98,20 +98,20 @@ allPositions =
         |> List.concatMap (\x -> List.range 0 3 |> List.map (\y -> ( x, y )))
 
 
-type SlideDirection
+type MoveDirection
     = Left
     | Right
     | Up
     | Down
 
 
-slideTilesInDirection : SlideDirection -> List Tile -> List Tile
+slideTilesInDirection : MoveDirection -> List Tile -> List Tile
 slideTilesInDirection direction tiles =
     slideTilesInDirectionHelp direction (tilesToLoL tiles)
         |> lolToTiles
 
 
-slideTilesInDirectionHelp : SlideDirection -> List (List (Maybe Tile)) -> List (List (Maybe Tile))
+slideTilesInDirectionHelp : MoveDirection -> List (List (Maybe Tile)) -> List (List (Maybe Tile))
 slideTilesInDirectionHelp direction lol =
     case direction of
         Left ->
@@ -188,8 +188,8 @@ merge : List Tile -> List Tile
 merge tiles =
     case tiles of
         x :: y :: rest ->
-            if x.val == y.val then
-                { x | val = x.val * 2 } :: merge rest
+            if x.value == y.value then
+                { x | value = x.value * 2 } :: merge rest
 
             else
                 x :: merge (y :: rest)
@@ -256,8 +256,8 @@ viewGridItem tile =
         gridPos =
             tile.pos
 
-        val =
-            tile.val
+        value =
+            tile.value
     in
     div
         [ gridAreaFromXY gridPos
@@ -278,7 +278,7 @@ viewGridItem tile =
             , style "font-size" "48px"
             ]
             --[ text (Debug.toString gp) ]
-            [ text (String.fromInt val) ]
+            [ text (String.fromInt value) ]
 
         --[]
         ]
