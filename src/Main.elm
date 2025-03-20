@@ -179,8 +179,7 @@ slideRowLeft row =
                 |> Debug.log "tiles"
 
         padding =
-            List.repeat (List.length row - List.length front) Nothing
-                |> Debug.log "padding"
+            List.repeat (List.length row - List.length merged) Nothing
     in
     List.map Just merged ++ padding
 
