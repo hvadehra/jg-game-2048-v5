@@ -15,7 +15,7 @@ main =
     let
         initialTiles : List Tile
         initialTiles =
-            Random.step (randomTiles allGPs) (Random.initialSeed 2)
+            Random.step (randomTiles allPositions) (Random.initialSeed 2)
                 |> Tuple.first
                 --|> Debug.log ""
                 |> always initialTiles2
@@ -33,6 +33,7 @@ main =
         { tiles =
             initialTiles
 
+        --|> slideTilesInDirection Down
         --|> slideTilesInDirection Left
         --|> slideTilesInDirection Right
         --|> slideTilesInDirection Left
@@ -42,12 +43,12 @@ main =
         }
 
 
-type alias GP =
+type alias GridPos =
     ( Int, Int )
 
 
 type alias Tile =
-    { gp : GP
+    { pos : GridPos
     , val : Val
     }
 
@@ -56,29 +57,29 @@ type alias Val =
     Int
 
 
-randomTiles : List GP -> Generator (List Tile)
-randomTiles emptyGPs =
-    randomAvailableGPsUpto randomTilesCount emptyGPs
-        |> Random.andThen randomTilesFromGPs
+randomTiles : List GridPos -> Generator (List Tile)
+randomTiles gridPositions =
+    randomAvailablePositionsUpto randomTilesCount gridPositions
+        |> Random.andThen randomTilesFromGridPos
 
 
-randomAvailableGPsUpto : Int -> List GP -> Generator (List GP)
-randomAvailableGPsUpto maxGP availableGPs =
-    Random.List.shuffle availableGPs
-        |> Random.map (List.take maxGP)
+randomAvailablePositionsUpto : Int -> List GridPos -> Generator (List GridPos)
+randomAvailablePositionsUpto maxPositions availablePositions =
+    Random.List.shuffle availablePositions
+        |> Random.map (List.take maxPositions)
 
 
-randomTilesFromGPs : List GP -> Generator (List Tile)
-randomTilesFromGPs gps =
+randomTilesFromGridPos : List GridPos -> Generator (List Tile)
+randomTilesFromGridPos gridPositions =
     let
         len =
-            List.length gps
+            List.length gridPositions
     in
     Random.list len randomInitialVal
         |> Random.map
             (\vals ->
-                List.map2 Tuple.pair gps vals
-                    |> List.map (\( gp, val ) -> initTile gp val)
+                List.map2 Tuple.pair gridPositions vals
+                    |> List.map (\( pos, val ) -> initTile pos val)
             )
 
 
@@ -87,12 +88,12 @@ randomInitialVal =
     Random.uniform 2 [ 4 ]
 
 
-initTile : GP -> Val -> Tile
-initTile gp val =
-    Tile gp val
+initTile : GridPos -> Val -> Tile
+initTile pos val =
+    Tile pos val
 
 
-allGPs =
+allPositions =
     List.range 0 3
         |> List.concatMap (\x -> List.range 0 3 |> List.map (\y -> ( x, y )))
 
@@ -106,7 +107,7 @@ type SlideDirection
 
 slideTilesInDirection : SlideDirection -> List Tile -> List Tile
 slideTilesInDirection direction tiles =
-    slideTilesInDirectionHelp direction (tilesToLOL tiles)
+    slideTilesInDirectionHelp direction (tilesToLoL tiles)
         |> lolToTiles
 
 
@@ -150,7 +151,7 @@ lolToTiles lol =
                 (\x mt ->
                     Maybe.map
                         (\t ->
-                            { t | gp = ( x, y ) }
+                            { t | pos = ( x, y ) }
                         )
                         mt
                 )
@@ -176,7 +177,6 @@ slideRowLeft row =
         merged : List Tile
         merged =
             merge front
-                |> Debug.log "tiles"
 
         padding =
             List.repeat (List.length row - List.length merged) Nothing
@@ -198,14 +198,14 @@ merge tiles =
             tiles
 
 
-tilesToLOL : List Tile -> List (List (Maybe Tile))
-tilesToLOL tiles =
+tilesToLoL : List Tile -> List (List (Maybe Tile))
+tilesToLoL tiles =
     let
-        findTileAtGP gp =
-            LE.find (\t -> t.gp == gp) tiles
+        findTileAtGridPos gridPos =
+            LE.find (\t -> t.pos == gridPos) tiles
     in
     List.range 0 3
-        |> List.map (\y -> List.range 0 3 |> List.map (\x -> findTileAtGP ( x, y )))
+        |> List.map (\y -> List.range 0 3 |> List.map (\x -> findTileAtGridPos ( x, y )))
 
 
 view model =
@@ -246,21 +246,21 @@ viewGrid tiles =
         , style "padding" "5px"
         , style "border-radius" "10px"
         ]
-        (List.map viewBackgroundGridItem allGPs
+        (List.map viewBackgroundGridItem allPositions
             ++ List.map viewGridItem tiles
         )
 
 
 viewGridItem tile =
     let
-        gp =
-            tile.gp
+        gridPos =
+            tile.pos
 
         val =
             tile.val
     in
     div
-        [ gridAreaFromXY gp
+        [ gridAreaFromXY gridPos
         , style "padding" "5px"
 
         --, style "translate" "300%"
