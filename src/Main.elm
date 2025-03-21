@@ -5,6 +5,7 @@ import Html.Attributes as HA exposing (style)
 import List.Extra as LE
 import Random exposing (Generator)
 import Random.List
+import Set
 
 
 main =
@@ -22,20 +23,40 @@ main =
             ]
 
         model =
-            { tiles =
-                tiles
-                    |> slideTiles Left
-                    |> always tiles2
-                    |> always tiles
+            { tiles = tiles
 
+            --|> slideTiles Left
+            --|> always tiles2
+            --|> always tiles
             --|> slideTiles Left
             --|> slideTiles Right
             --|> slideTiles Up
             --|> slideTiles Down
             , seed = seed
             }
+                |> modelAddRandomTiles 2
     in
     view model
+
+
+modelAddRandomTiles n model =
+    let
+        ( tiles, seed ) =
+            Random.step (randomTiles n (emptyPositions model.tiles)) model.seed
+    in
+    { model | tiles = model.tiles ++ tiles, seed = seed }
+
+
+emptyPositions tiles =
+    let
+        occupiedPositions =
+            List.map .pos tiles
+                |> Set.fromList
+
+        availablePositions =
+            Set.diff (Set.fromList allPositions) occupiedPositions
+    in
+    Set.toList availablePositions
 
 
 type alias GridPos =
