@@ -101,31 +101,31 @@ type MoveDirection
 
 slideTiles : MoveDirection -> List Tile -> List Tile
 slideTiles direction tiles =
-    slideTilesInDirectionHelp direction (tilesToLoL tiles)
-        |> lolToTiles
+    slideTilesInDirectionHelp direction (tilesToLists tiles)
+        |> listsToTiles
 
 
 slideTilesInDirectionHelp : MoveDirection -> List (List (Maybe Tile)) -> List (List (Maybe Tile))
-slideTilesInDirectionHelp direction lol =
+slideTilesInDirectionHelp direction lists =
     case direction of
         Left ->
-            lol
+            lists
                 |> slideRowsLeft
 
         Right ->
-            lol
+            lists
                 |> reverseRows
                 |> slideRowsLeft
                 |> reverseRows
 
         Up ->
-            lol
+            lists
                 |> LE.transpose
                 |> slideRowsLeft
                 |> LE.transpose
 
         Down ->
-            lol
+            lists
                 |> LE.transpose
                 |> reverseRows
                 |> slideRowsLeft
@@ -133,12 +133,12 @@ slideTilesInDirectionHelp direction lol =
                 |> LE.transpose
 
 
-reverseRows lol =
-    List.map List.reverse lol
+reverseRows lists =
+    List.map List.reverse lists
 
 
-lolToTiles : List (List (Maybe Tile)) -> List Tile
-lolToTiles lol =
+listsToTiles : List (List (Maybe Tile)) -> List Tile
+listsToTiles lists =
     List.indexedMap
         (\y row ->
             List.indexedMap
@@ -152,13 +152,13 @@ lolToTiles lol =
                 row
                 |> List.filterMap identity
         )
-        lol
+        lists
         |> List.concat
 
 
 slideRowsLeft : List (List (Maybe Tile)) -> List (List (Maybe Tile))
-slideRowsLeft lol =
-    List.map slideRowLeft lol
+slideRowsLeft lists =
+    List.map slideRowLeft lists
 
 
 slideRowLeft : List (Maybe Tile) -> List (Maybe Tile)
@@ -192,8 +192,8 @@ merge tiles =
             tiles
 
 
-tilesToLoL : List Tile -> List (List (Maybe Tile))
-tilesToLoL tiles =
+tilesToLists : List Tile -> List (List (Maybe Tile))
+tilesToLists tiles =
     let
         findTileAtGridPos gridPos =
             LE.find (\t -> t.pos == gridPos) tiles
