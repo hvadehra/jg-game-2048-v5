@@ -7,40 +7,35 @@ import Random exposing (Generator)
 import Random.List
 
 
-randomTilesCount =
-    4
-
-
 main =
     let
-        initialTiles : List Tile
-        initialTiles =
-            Random.step (randomTiles allPositions) (Random.initialSeed 2)
-                |> Tuple.first
-                --|> Debug.log ""
-                |> always initialTiles2
+        initialSeed =
+            Random.initialSeed 0
 
-        initialTiles2 =
+        ( tiles, seed ) =
+            Random.step (randomTiles 4 allPositions) initialSeed
+
+        tiles2 =
             [ Tile ( 3, 1 ) 2
             , Tile ( 2, 1 ) 2
             , Tile ( 2, 2 ) 2
             ]
 
-        --_ =
-        --    List.length initialTiles |> Debug.log "len"
-    in
-    view
-        { tiles =
-            initialTiles
+        model =
+            { tiles =
+                tiles
+                    |> slideTiles Left
+                    |> always tiles2
+                    |> always tiles
 
-        --|> slideTilesInDirection Down
-        --|> slideTilesInDirection Left
-        --|> slideTilesInDirection Right
-        --|> slideTilesInDirection Left
-        --|> slideTilesInDirection Up
-        --|> slideTilesInDirection Down
-        --|> slideTilesInDirection Down
-        }
+            --|> slideTiles Left
+            --|> slideTiles Right
+            --|> slideTiles Up
+            --|> slideTiles Down
+            , seed = seed
+            }
+    in
+    view model
 
 
 type alias GridPos =
@@ -57,10 +52,10 @@ type alias TileValue =
     Int
 
 
-randomTiles : List GridPos -> Generator (List Tile)
-randomTiles gridPositions =
-    randomAvailablePositionsUpto randomTilesCount gridPositions
-        |> Random.andThen randomTilesFromGridPos
+randomTiles : Int -> List GridPos -> Generator (List Tile)
+randomTiles maxTiles gridPositions =
+    randomAvailablePositionsUpto maxTiles gridPositions
+        |> Random.andThen randomTilesForGridPositions
 
 
 randomAvailablePositionsUpto : Int -> List GridPos -> Generator (List GridPos)
@@ -69,17 +64,16 @@ randomAvailablePositionsUpto maxPositions availablePositions =
         |> Random.map (List.take maxPositions)
 
 
-randomTilesFromGridPos : List GridPos -> Generator (List Tile)
-randomTilesFromGridPos gridPositions =
+randomTilesForGridPositions : List GridPos -> Generator (List Tile)
+randomTilesForGridPositions gridPositions =
     let
-        len =
-            List.length gridPositions
+        randomValues =
+            Random.list (List.length gridPositions) randomInitialValue
     in
-    Random.list len randomInitialValue
+    randomValues
         |> Random.map
-            (\vals ->
-                List.map2 Tuple.pair gridPositions vals
-                    |> List.map (\( pos, value ) -> initTile pos value)
+            (\values ->
+                List.map2 (\pos value -> initTile pos value) gridPositions values
             )
 
 
@@ -105,8 +99,8 @@ type MoveDirection
     | Down
 
 
-slideTilesInDirection : MoveDirection -> List Tile -> List Tile
-slideTilesInDirection direction tiles =
+slideTiles : MoveDirection -> List Tile -> List Tile
+slideTiles direction tiles =
     slideTilesInDirectionHelp direction (tilesToLoL tiles)
         |> lolToTiles
 
