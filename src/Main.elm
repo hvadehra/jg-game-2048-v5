@@ -1,4 +1,4 @@
-module Main exposing (main)
+module Main exposing (main, suite)
 
 import Html exposing (..)
 import Html.Attributes as HA exposing (style)
@@ -6,6 +6,9 @@ import List.Extra as LE
 import Random exposing (Generator)
 import Random.List
 import Set
+import Maybe exposing (Maybe)
+import Test exposing (..)
+import Expect exposing (Expectation)
 
 
 main =
@@ -110,7 +113,7 @@ initTile pos value =
 
 allPositions =
     List.range 0 3
-        |> List.concatMap (\x -> List.range 0 3 |> List.map (\y -> ( x, y )))
+        |> List.concatMap (\y -> List.range 0 3 |> List.map (\x -> ( x, y )))
 
 
 type MoveDirection
@@ -326,3 +329,147 @@ viewBackgroundGridItem xy =
 
 gridAreaFromXY ( x, y ) =
     style "grid-area" (String.fromInt (y + 1) ++ "/" ++ String.fromInt (x + 1))
+
+suite : Test
+suite =
+    let
+       makeTile ((x,y), val) = Maybe.map (Tile (x,y)) val
+       printRow row
+           = List.map printTile row |>
+             String.join " "
+       printTile tile
+           = case tile of
+               Just {pos,value} -> (String.fromInt value)
+               Nothing -> "."
+       parseGrid rows
+           = List.map (String.words) rows |>
+             List.concat |>
+             List.map String.toInt |>
+             LE.zip allPositions |>
+             List.map makeTile |>
+             List.filterMap identity
+       prettyPrintGrid tiles
+           = tilesToLists tiles |>
+             List.map printRow
+
+    in
+    describe "All tests"
+        [ test "parser" <|
+            \_ -> parseGrid [
+                            ". 1 . .",
+                            ". . 2 3",
+                            "4 . . .",
+                            ". 5 6 ."
+                           ] |>
+            Expect.equal [Tile (1,0) 1, Tile (2,1) 2, Tile (3,1) 3, Tile (0,2) 4, Tile (1,3) 5, Tile (2,3) 6]
+        , test "printer" <|
+            \_ -> prettyPrintGrid [Tile (1,0) 1, Tile (2,1) 2, Tile (3,1) 3, Tile (0,2) 4, Tile (1,3) 5, Tile (2,3) 6] |>
+            Expect.equal [
+                ". 1 . .",
+                ". . 2 3",
+                "4 . . .",
+                ". 5 6 ."
+            ]
+         , describe "empty grid" <|
+            let
+                checkDirection direction =
+                    test (Debug.toString direction) <|
+                        \_ -> slideTiles direction []
+                            |> Expect.equal []
+            in
+                [ checkDirection Left,
+                  checkDirection Right,
+                  checkDirection Up,
+                  checkDirection Down
+                ]
+        , describe "Slide without merges" <|
+                let grid = parseGrid [
+                                     "1 . 3 .",
+                                     ". 2 . .",
+                                     "4 . 5 .",
+                                     ". 6 . 7"
+                                     ]
+                in
+                [ test "Left" <|
+                    \_ -> slideTiles Left grid |>
+                        prettyPrintGrid |>
+                        Expect.equal [
+                            "1 3 . .",
+                            "2 . . .",
+                            "4 5 . .",
+                            "6 7 . ."
+                        ]
+                , test "Right" <|
+                    \_ -> slideTiles Right grid |>
+                        prettyPrintGrid |>
+                        Expect.equal [
+                            ". . 1 3",
+                            ". . . 2",
+                            ". . 4 5",
+                            ". . 6 7"
+                        ]
+                , test "Down" <|
+                    \_ -> slideTiles Down grid |>
+                        prettyPrintGrid |>
+                        Expect.equal [
+                            ". . . .",
+                            ". . . .",
+                            "1 2 3 .",
+                            "4 6 5 7"
+                        ]
+                , test "Up" <|
+                    \_ -> slideTiles Up grid |>
+                        prettyPrintGrid |>
+                        Expect.equal [
+                            "1 2 3 7",
+                            "4 6 5 .",
+                            ". . . .",
+                            ". . . ."
+                        ]
+                ]
+        , describe "Slide with merges" <|
+                let grid = parseGrid [
+                            ". . 4 .",
+                            ". 2 2 4",
+                            "4 2 2 .",
+                            ". 4 . ."
+                            ]
+                in
+                [ test "Left" <|
+                    \_ -> slideTiles Left grid |>
+                        prettyPrintGrid |>
+                        Expect.equal [
+                            "4 . . .",
+                            "4 4 . .",
+                            "4 4 . .",
+                            "4 . . ."
+                        ]
+                , test "Right" <|
+                    \_ -> slideTiles Right grid |>
+                        prettyPrintGrid |>
+                        Expect.equal [
+                          ". . . 4",
+                          ". . 4 4",
+                          ". . 4 4",
+                          ". . . 4"
+                        ]
+                , test "Down" <|
+                    \_ -> slideTiles Down grid |>
+                        prettyPrintGrid |>
+                        Expect.equal [
+                          ". . . .",
+                          ". . . .",
+                          ". 4 4 .",
+                          "4 4 4 4"
+                        ]
+                , test "Up" <|
+                    \_ -> slideTiles Up grid |>
+                        prettyPrintGrid |>
+                        Expect.equal [
+                          "4 4 4 4",
+                          ". 4 4 .",
+                          ". . . .",
+                          ". . . ."
+                        ]
+                ]
+        ]
